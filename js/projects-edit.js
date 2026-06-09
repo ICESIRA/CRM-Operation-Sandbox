@@ -1,7 +1,7 @@
 // ── CRM Operations — projects-edit.js ──
 // Add/edit project, renew, access, budget bar
 // ── ADD PROJECT ───────────────────────────────────────────────
-let _apAccesses = [];
+var _apAccesses = [];
 
 function openAddProject() {
   _apAccesses = [];

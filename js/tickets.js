@@ -73,7 +73,7 @@ function mkRows(list) {
   </tr>`;}).join('');
 }
 
-let _period = '';
+var _period = '';
 
 function setPeriod(v) {
   _period = v;

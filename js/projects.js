@@ -112,9 +112,9 @@ function updateProjOwner(i, val) {
   render();
 }
 
-let _pendingStatusIdx = null;
-let _pendingStatusVal = null;
-let _currentProjIdx   = null;
+var _pendingStatusIdx = null;
+var _pendingStatusVal = null;
+var _currentProjIdx   = null;
 
 function openStatusModal(i) {
   _pendingStatusIdx = i;

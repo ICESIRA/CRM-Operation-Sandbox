@@ -34,24 +34,24 @@ function _parseDate(d) {
   const dt = new Date(d);
   return isNaN(dt.getTime()) ? null : dt;
 }
-const fmtDate     = d => {
+var fmtDate     = d => {
   const dt = _parseDate(d);
   if (!dt) return '—';
   return String(dt.getDate()).padStart(2,'0') + '/' +
          String(dt.getMonth()+1).padStart(2,'0') + '/' +
          dt.getFullYear();
 };
-const fmtDateFull = d => {
+var fmtDateFull = d => {
   const dt = _parseDate(d);
   if (!dt) return '—';
   return String(dt.getDate()).padStart(2,'0') + '/' +
          String(dt.getMonth()+1).padStart(2,'0') + '/' +
          dt.getFullYear();
 };
-const daysLeft = d => d ? Math.round((new Date(d)-new Date())/86400000) : null;
-const mkBadge = s => `<span class="badge ${SC[s]}">${SI[s]} ${SL[s]}</span>`;
-const mkPri   = p => `<span class="pri pri-${p}" title="${PL[p]}"></span>`;
-const mkDays  = d => {
+var daysLeft = d => d ? Math.round((new Date(d)-new Date())/86400000) : null;
+var mkBadge = s => `<span class="badge ${SC[s]}">${SI[s]} ${SL[s]}</span>`;
+var mkPri   = p => `<span class="pri pri-${p}" title="${PL[p]}"></span>`;
+var mkDays  = d => {
   const n = daysLeft(d);
   if (n===null) return '—';
   const style = n<0 ? 'color:var(--red)' : n===0 ? 'color:var(--red)' : n<=2 ? 'color:var(--gold)' : 'color:var(--t2)';

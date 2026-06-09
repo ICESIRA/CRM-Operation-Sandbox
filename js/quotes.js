@@ -1,10 +1,10 @@
 // ── CRM Operations — quotes.js ──
 // Quotation file handling
 // ── QUOTATION FILE HELPERS ────────────────────────────────────
-let _pendingQuoteNew    = null;
-let _pendingQuoteStatus = null;
-let _pendingQuoteRenew  = null;
-const _quoteStore = {};
+var _pendingQuoteNew    = null;
+var _pendingQuoteStatus = null;
+var _pendingQuoteRenew  = null;
+var _quoteStore = {};
 
 
 function isAllowedQuoteFile(file) {
