@@ -60,8 +60,8 @@ function renderClients() {
     ${isSpecialist && myName ? `<div class="alert alert-warn" style="margin-bottom:12px">🗂️ แสดงเฉพาะ Project ที่ <strong>${getMemberDisplay(myName)}</strong> รับผิดชอบ</div>` : ''}
     <div class="tbl-wrap"><table>
       <thead><tr>
-        <th>Project ID</th><th>Client Name</th><th>Project Owner</th>
-        <th>Access</th><th>Budget รวม</th><th>เริ่ม</th><th>จบ</th><th>สถานะ</th>
+        <th>Project ID</th><th>Client Name</th><th>Contact</th><th>Project Owner</th>
+        <th>Access</th><th>Budget รวม</th><th>เริ่ม</th><th>สิ้นสุดสัญญา</th><th>สถานะ</th>
       </tr></thead>
       <tbody>${filtered.map((p)=>{
         const i = PROJECTS.indexOf(p);
@@ -69,6 +69,7 @@ function renderClients() {
         return `<tr onclick="openProject(${i})" style="cursor:pointer">
           <td><span style="font-family:var(--mono);font-size:11px;color:var(--t3)">#${p.id}</span></td>
           <td><strong>${p.name}</strong></td>
+          <td style="font-size:12px;color:var(--t2)">${p.keyContact||'<span style="color:var(--t3)">—</span>'}</td>
           <td onclick="event.stopPropagation()" style="font-size:12px">
             <select onchange="updateProjOwner(${i}, this.value)"
               style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;color:var(--t1);font-family:var(--sans);font-size:12px;font-weight:600;padding:4px 8px;outline:none;cursor:pointer"
