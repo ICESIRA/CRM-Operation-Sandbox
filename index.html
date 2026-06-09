@@ -634,6 +634,11 @@
 <script src="js/quotes.js"></script>
 <script src="js/notifications.js"></script>
 
+<script>
+// ── POST-LOAD: ต้องอยู่หลัง script ทั้งหมด ──
+_localConfirmAddProject = confirmAddProject;
+</script>
+
 <!-- Firebase (ES Module — must load last) -->
 <script type="module" src="js/firestore.js"></script>
 
