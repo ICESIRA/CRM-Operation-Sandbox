@@ -69,7 +69,11 @@ function renderClients() {
         return `<tr onclick="openProject(${i})" style="cursor:pointer">
           <td><span style="font-family:var(--mono);font-size:11px;color:var(--t3)">#${p.id}</span></td>
           <td><strong>${p.name}</strong></td>
-          <td style="font-size:12px;color:var(--t2)">${p.keyContact||'<span style="color:var(--t3)">—</span>'}</td>
+          <td onclick="event.stopPropagation()">
+            <input type="date" value="${p.contractEnd||''}" onchange="updateContractEnd(${i},this.value)"
+              style="background:none;border:none;color:var(--t2);font-family:var(--sans);font-size:12px;width:120px;cursor:pointer;outline:none"
+              title="วันหมดสัญญา" />
+          </td>
           <td onclick="event.stopPropagation()" style="font-size:12px">
             <select onchange="updateProjOwner(${i}, this.value)"
               style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;color:var(--t1);font-family:var(--sans);font-size:12px;font-weight:600;padding:4px 8px;outline:none;cursor:pointer"
@@ -96,6 +100,11 @@ function renderClients() {
 function setProjFilter(val) {
   window._projFilter = val;
   render();
+}
+
+function updateContractEnd(i, val) {
+  PROJECTS[i].contractEnd = val;
+  showToast('✓ บันทึกวันหมดสัญญาแล้ว');
 }
 
 function setProjOwnerFilter(val) {

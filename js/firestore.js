@@ -420,6 +420,13 @@ window.updateProjDate = async function(i, field, val) {
   await _saveProject(PROJECTS[i]);
 };
 
+// ── OVERRIDE: updateContractEnd → Firestore ─────────────────
+const _origUpdateContractEnd = window.updateContractEnd;
+window.updateContractEnd = async function(i, val) {
+  _origUpdateContractEnd(i, val);
+  await _saveProject(PROJECTS[i]);
+};
+
 // ── OVERRIDE: updateProjOwner → Firestore ───────────────────
 const _origUpdateProjOwner = window.updateProjOwner;
 window.updateProjOwner = async function(i, val) {
