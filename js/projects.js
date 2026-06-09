@@ -256,7 +256,25 @@ function openProject(i) {
       </div>
       <div style="font-size:11px;color:var(--t3);margin-bottom:10px">เมื่อถึงกำหนด ระบบจะสร้าง Ticket ใน All Tickets อัตโนมัติ</div>
 
-      <!-- Existing routines -->
+      <!-- Routine Basic -->
+      <div style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">📋 Basic</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+        ${[
+          {key:'spendingCheck', label:'Spending Check', desc:'ทุกวัน · 1 Ticket ต่อ 1 Access', icon:'💰'},
+          {key:'reportWeekly', label:'Report Weekly', desc:'ทุก 7 วัน · สร้างล่วงหน้า 3 วัน', icon:'📊'},
+          {key:'reportMonth', label:'Report Month', desc:'ล่วงหน้า 7 วัน ก่อนสิ้นสุดสัญญา', icon:'📅'},
+          {key:'reportPDF', label:'Report PDF', desc:'หลังสิ้นสุดสัญญา 7 วัน', icon:'📄'},
+        ].map(function(rb){
+          var checked = p.routineBasic && p.routineBasic[rb.key];
+          return '<label style="display:flex;align-items:center;gap:10px;background:var(--s3);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;cursor:pointer">' +
+            '<input type="checkbox" '+(checked?'checked':'')+' onchange="toggleRoutineBasic('+i+',\''+rb.key+'\',this.checked)" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" />' +
+            '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--t1)">'+rb.icon+' '+rb.label+'</div>' +
+            '<div style="font-size:10px;color:var(--t3);margin-top:2px">'+rb.desc+'</div></div></label>';
+        }).join('')}
+      </div>
+
+      <!-- Routine Advanced -->
+      <div style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">⚙️ Advanced (กำหนดเอง)</div>
       <div id="routine-list-${i}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
         ${(p.routines||[]).map((r,ri) => {
           var today = new Date(); today.setHours(0,0,0,0);
@@ -277,10 +295,8 @@ function openProject(i) {
             '<button onclick="removeRoutine('+i+','+ri+')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:2px 5px;flex-shrink:0" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--t3)\'">✕</button>' +
           '</div>';
         }).join('')}
-        ${!(p.routines||[]).length ? '<div style="font-size:12px;color:var(--t3);text-align:center;padding:12px">ยังไม่มี Routine — เพิ่มด้านล่าง</div>' : ''}
+        ${!(p.routines||[]).length ? '<div style="font-size:12px;color:var(--t3);text-align:center;padding:8px">ยังไม่มี — เพิ่มด้านล่าง</div>' : ''}
       </div>
-
-      <!-- Add routine form -->
       <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
         <div style="flex:1;min-width:150px">
           <div style="font-size:10px;color:var(--t3);margin-bottom:4px">รายละเอียด Routine</div>
@@ -291,7 +307,7 @@ function openProject(i) {
           <input type="number" id="routine-interval-${i}" class="fc" value="30" min="1" max="365" style="font-size:12px;padding:7px 10px;text-align:center" />
         </div>
         <button onclick="addRoutine(${i})"
-          style="background:rgba(30,181,168,.15);color:var(--accent);border:1px solid rgba(30,181,168,.4);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);white-space:nowrap;height:36px">
+          style="background:rgba(108,92,231,.15);color:var(--accent);border:1px solid rgba(108,92,231,.4);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);white-space:nowrap;height:36px">
           ＋ เพิ่ม
         </button>
       </div>
@@ -548,6 +564,13 @@ function openProject(i) {
 }
 
 // ── ROUTINE FUNCTIONS ────────────────────────────────────────
+function toggleRoutineBasic(projIdx, key, checked) {
+  var p = PROJECTS[projIdx];
+  if (!p.routineBasic) p.routineBasic = {};
+  p.routineBasic[key] = checked;
+  showToast(checked ? '✅ เปิด ' + key : '❌ ปิด ' + key);
+}
+
 function addRoutine(projIdx) {
   var p = PROJECTS[projIdx];
   var taskEl = document.getElementById('routine-task-' + projIdx);
@@ -598,34 +621,103 @@ function checkRoutinesAndCreateTickets() {
 
   PROJECTS.forEach(function(p, pi) {
     if (p.status !== 'active') return;
-    if (!p.routines || !p.routines.length) return;
+    var rb = p.routineBasic || {};
 
+    // ── Basic: Spending Check (ทุกวัน, 1 ticket per access) ──
+    if (rb.spendingCheck) {
+      var lastSpend = p._lastSpendingCheck || '';
+      if (lastSpend !== todayStr) {
+        (p.accesses || []).forEach(function(acc) {
+          var tid = genTicketId();
+          TICKETS.unshift({
+            id: tid, client: p.name, platform: acc.platform,
+            type: 'Spending Check', desc: '💰 ตรวจ Spending ' + acc.platform + ' (Auto)',
+            priority: 'm', status: 'todo', specialist: p.member || null, coSpecialist: null,
+            deadline: todayStr, created: todayStr,
+            statusLog: [{ date: todayStr, status: 'todo', note: '🔄 Spending Check อัตโนมัติ' }]
+          });
+          created++;
+        });
+        p._lastSpendingCheck = todayStr;
+      }
+    }
+
+    // ── Basic: Report Weekly (ทุก 7 วัน, สร้างล่วงหน้า 3 วัน) ──
+    if (rb.reportWeekly) {
+      var nextWeekly = p._nextReportWeekly ? new Date(p._nextReportWeekly) : null;
+      if (!nextWeekly) { var nw = new Date(today); nw.setDate(nw.getDate()+7); p._nextReportWeekly = nw.toISOString().split('T')[0]; nextWeekly = nw; }
+      nextWeekly.setHours(0,0,0,0);
+      var daysUntilWeekly = Math.round((nextWeekly - today) / 86400000);
+      if (daysUntilWeekly <= 3 && p._lastReportWeeklyCreated !== p._nextReportWeekly) {
+        var tid = genTicketId();
+        TICKETS.unshift({
+          id: tid, client: p.name, platform: (p.accesses&&p.accesses[0]?p.accesses[0].platform:'(ทั้งหมด)'),
+          type: 'Report Weekly', desc: '📊 Report Weekly — Deadline: ' + fmtDate(p._nextReportWeekly) + ' (Auto)',
+          priority: 'm', status: 'todo', specialist: p.member || null, coSpecialist: null,
+          deadline: p._nextReportWeekly, created: todayStr,
+          statusLog: [{ date: todayStr, status: 'todo', note: '🔄 Report Weekly อัตโนมัติ' }]
+        });
+        p._lastReportWeeklyCreated = p._nextReportWeekly;
+        var nn = new Date(nextWeekly); nn.setDate(nn.getDate()+7); p._nextReportWeekly = nn.toISOString().split('T')[0];
+        created++;
+      }
+    }
+
+    // ── Basic: Report Month (ล่วงหน้า 7 วัน ก่อนสิ้นสุดสัญญา) ──
+    if (rb.reportMonth && (p.contractEnd || p.endDate)) {
+      var contractEnd = new Date(p.contractEnd || p.endDate); contractEnd.setHours(0,0,0,0);
+      var daysUntilEnd = Math.round((contractEnd - today) / 86400000);
+      if (daysUntilEnd <= 7 && daysUntilEnd >= 0 && !p._reportMonthCreated) {
+        var tid = genTicketId();
+        TICKETS.unshift({
+          id: tid, client: p.name, platform: '(ทั้งหมด)',
+          type: 'Report Month', desc: '📅 Report สรุปรายเดือน — สัญญาสิ้นสุด ' + fmtDate(p.contractEnd || p.endDate) + ' (Auto)',
+          priority: 'h', status: 'todo', specialist: p.member || null, coSpecialist: null,
+          deadline: (p.contractEnd || p.endDate), created: todayStr,
+          statusLog: [{ date: todayStr, status: 'todo', note: '🔄 Report Month อัตโนมัติ' }]
+        });
+        p._reportMonthCreated = todayStr;
+        created++;
+      }
+    }
+
+    // ── Basic: Report PDF (หลังสิ้นสุดสัญญา 7 วัน) ──
+    if (rb.reportPDF && (p.contractEnd || p.endDate)) {
+      var contractEnd2 = new Date(p.contractEnd || p.endDate); contractEnd2.setHours(0,0,0,0);
+      var daysPast = Math.round((today - contractEnd2) / 86400000);
+      if (daysPast >= 0 && daysPast <= 7 && !p._reportPDFCreated) {
+        var pdfDeadline = new Date(contractEnd2); pdfDeadline.setDate(pdfDeadline.getDate()+7);
+        var tid = genTicketId();
+        TICKETS.unshift({
+          id: tid, client: p.name, platform: '(ทั้งหมด)',
+          type: 'Report PDF', desc: '📄 จัดทำ Report PDF ส่งลูกค้า — Deadline: ' + fmtDate(pdfDeadline.toISOString().split('T')[0]) + ' (Auto)',
+          priority: 'h', status: 'todo', specialist: p.member || null, coSpecialist: null,
+          deadline: pdfDeadline.toISOString().split('T')[0], created: todayStr,
+          statusLog: [{ date: todayStr, status: 'todo', note: '🔄 Report PDF อัตโนมัติ' }]
+        });
+        p._reportPDFCreated = todayStr;
+        created++;
+      }
+    }
+
+    // ── Advanced routines ──
+    if (!p.routines || !p.routines.length) return;
     p.routines.forEach(function(r) {
       if (!r.nextDue) return;
       var due = new Date(r.nextDue); due.setHours(0,0,0,0);
       if (due > today) return;
-
-      // Due or overdue → create ticket
       var ticketId = genTicketId();
       TICKETS.unshift({
-        id: ticketId,
-        client: p.name,
+        id: ticketId, client: p.name,
         platform: (p.accesses && p.accesses.length > 0) ? p.accesses[0].platform : '(ไม่ระบุ)',
         type: 'Routine: ' + r.task,
         desc: '🔄 สร้างอัตโนมัติจาก Routine — ' + r.task + ' (ทุก ' + r.intervalDays + ' วัน)',
-        priority: 'm',
-        status: 'todo',
-        specialist: p.member || null,
-        coSpecialist: null,
-        deadline: todayStr,
-        created: todayStr,
+        priority: 'm', status: 'todo', specialist: p.member || null, coSpecialist: null,
+        deadline: todayStr, created: todayStr,
         statusLog: [{ date: todayStr, status: 'todo', note: '🔄 สร้างจาก Routine อัตโนมัติ' }]
       });
-
-      // Update routine: set next due
       r.lastCreated = todayStr;
-      var next = new Date(today);
-      next.setDate(next.getDate() + (r.intervalDays || 30));
+      var next = new Date(today); next.setDate(next.getDate() + (r.intervalDays || 30));
       r.nextDue = next.toISOString().split('T')[0];
       created++;
     });

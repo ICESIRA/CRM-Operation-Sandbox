@@ -360,6 +360,13 @@ window.saveProjContact = async function(projIdx) {
   await _saveProject(PROJECTS[projIdx]);
 };
 
+// ── OVERRIDE: toggleRoutineBasic → Firestore ────────────────
+const _origToggleRoutineBasic = window.toggleRoutineBasic;
+window.toggleRoutineBasic = async function(projIdx, key, checked) {
+  _origToggleRoutineBasic(projIdx, key, checked);
+  await _saveProject(PROJECTS[projIdx]);
+};
+
 // ── OVERRIDE: saveRoutines → Firestore ──────────────────────
 const _origSaveRoutines = window.saveRoutines;
 window.saveRoutines = async function(projIdx) {

@@ -27,13 +27,22 @@ function renderAllTickets() {
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
       <span style="font-size:11px;color:var(--t3);font-weight:600">📅 Deadline :</span>
-      ${['','day','week','month'].map((v,i)=>{
-        const labels = ['ทั้งหมด','วันนี้','สัปดาห์นี้','เดือนนี้'];
-        const active = (v||'') === (_period||'');
-        return `<button id="tf-period-${v||'all'}" onclick="setPeriod('${v}')"
-          style="font-size:11px;font-weight:700;font-family:var(--sans);padding:5px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--bd);background:${active?'var(--grad)':'var(--s2)'};color:${active?'white':'var(--t2)'};transition:all .15s">
-          ${labels[i]}</button>`;
-      }).join('')}
+      ${(function(){
+        var now = new Date(); now.setHours(0,0,0,0);
+        var week0 = new Date(now); week0.setDate(now.getDate() - now.getDay() + 1);
+        var week1 = new Date(week0); week1.setDate(week0.getDate() + 6);
+        var mon0 = new Date(now.getFullYear(), now.getMonth(), 1);
+        var mon1 = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        var cntDay = visibleTickets.filter(function(t){ if(!t.deadline) return false; var dl=new Date(t.deadline); dl.setHours(0,0,0,0); return dl.getTime()===now.getTime(); }).length;
+        var cntWeek = visibleTickets.filter(function(t){ if(!t.deadline) return false; var dl=new Date(t.deadline); dl.setHours(0,0,0,0); return dl>=week0&&dl<=week1; }).length;
+        var cntMonth = visibleTickets.filter(function(t){ if(!t.deadline) return false; var dl=new Date(t.deadline); dl.setHours(0,0,0,0); return dl>=mon0&&dl<=mon1; }).length;
+        var counts = [visibleTickets.length, cntDay, cntWeek, cntMonth];
+        return ['','day','week','month'].map(function(v,i){
+          var labels = ['ทั้งหมด','วันนี้','สัปดาห์นี้','เดือนนี้'];
+          var active = (v||'') === (_period||'');
+          return '<button id="tf-period-'+(v||'all')+'" onclick="setPeriod(\''+v+'\')" style="font-size:11px;font-weight:700;font-family:var(--sans);padding:5px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--bd);background:'+(active?'var(--grad)':'var(--s2)')+';color:'+(active?'white':'var(--t2)')+';transition:all .15s">'+labels[i]+' ('+counts[i]+')</button>';
+        }).join('');
+      })()}
       <span style="margin-left:auto;font-size:12px;color:var(--t3)" id="t-count">${visibleTickets.length} รายการ</span>
       <button class="btn btn-primary btn-sm" onclick="openTicketModal()">＋ Ticket ใหม่</button>
     </div>
@@ -134,7 +143,7 @@ function applyFilter() {
   });
 
   // Sort
-  var statusOrder = { overdue:0, todo:1, inprogress:2, hold:3, done:4 };
+  var statusOrder = { todo:0, inprogress:1, hold:2, overdue:3, review:4, done:5 };
   if (sort === 'status') {
     r.sort(function(a,b){ return (statusOrder[a.status]||9) - (statusOrder[b.status]||9); });
   } else if (sort === 'deadline') {

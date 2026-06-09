@@ -41,9 +41,13 @@ function canApproveTicket(ticket) {
 function getVisibleTickets() {
   if (_currentRole === 'Specialist') {
     var myName = getCurrentMemberName();
-    return myName ? TICKETS.filter(function(t){
-      return t.specialist === myName || t.coSpecialist === myName;
-    }) : [];
+    if (!myName) return [];
+    // Specialist sees tickets of projects they own
+    var myClients = {};
+    PROJECTS.forEach(function(p){ if (p.member === myName) myClients[p.name] = true; });
+    return TICKETS.filter(function(t){
+      return myClients[t.client] || t.specialist === myName || t.coSpecialist === myName;
+    });
   }
   return TICKETS;
 }
