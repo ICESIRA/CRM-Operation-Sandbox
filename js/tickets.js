@@ -12,21 +12,26 @@ function renderAllTickets() {
   const clients = [...new Set(PROJECTS.map(p=>p.name))];
   const specialists = TEAM.filter(m=>!m.resigned).map(m=>({ name: m.name, nick: m.nickname||m.name }));
 
+  // Restore saved filter values
+  var fs = window._ticketFilters || {};
+
   return `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-      <select class="fc" style="width:130px" id="tf-s"   onchange="applyFilter()"><option value="">ทุก Status</option>${Object.entries(SL).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
-      <select class="fc" style="width:130px" id="tf-c"   onchange="applyFilter()"><option value="">ทุก Client</option>${clients.map(c=>`<option>${c}</option>`).join('')}</select>
-      <select class="fc" style="width:150px" id="tf-p"   onchange="applyFilter()"><option value="">ทุก Platform</option>${ALL_PLATFORMS.map(p=>`<option>${p}</option>`).join('')}</select>
-      ${!isSpecialist ? `<select class="fc" style="width:120px" id="tf-sp" onchange="applyFilter()"><option value="">ทุก Specialist</option>${specialists.map(s=>`<option value="${s.name}">${s.nick}</option>`).join('')}</select>` : ''}
-      <select class="fc" style="width:110px" id="tf-pri" onchange="applyFilter()"><option value="">ทุก Priority</option><option value="h">High</option><option value="m">Medium</option><option value="l">Low</option></select>
-      <input  class="fc" style="width:150px" id="tf-q"   oninput="applyFilter()" placeholder="ค้นหา ID / Client..." />
+      <select class="fc" style="width:130px" id="tf-s"   onchange="applyFilter()"><option value="">ทุก Status</option>${Object.entries(SL).map(([v,l])=>`<option value="${v}" ${fs.s===v?'selected':''}>${l}</option>`).join('')}</select>
+      <select class="fc" style="width:130px" id="tf-c"   onchange="applyFilter()"><option value="">ทุก Client</option>${clients.map(c=>`<option ${fs.c===c?'selected':''}>${c}</option>`).join('')}</select>
+      <select class="fc" style="width:150px" id="tf-p"   onchange="applyFilter()"><option value="">ทุก Platform</option>${ALL_PLATFORMS.map(p=>`<option ${fs.p===p?'selected':''}>${p}</option>`).join('')}</select>
+      ${!isSpecialist ? `<select class="fc" style="width:120px" id="tf-sp" onchange="applyFilter()"><option value="">ทุก Specialist</option>${specialists.map(s=>`<option value="${s.name}" ${fs.sp===s.name?'selected':''}>${s.nick}</option>`).join('')}</select>` : ''}
+      <select class="fc" style="width:110px" id="tf-pri" onchange="applyFilter()"><option value="">ทุก Priority</option><option value="h" ${fs.pri==='h'?'selected':''}>High</option><option value="m" ${fs.pri==='m'?'selected':''}>Medium</option><option value="l" ${fs.pri==='l'?'selected':''}>Low</option></select>
+      <select class="fc" style="width:140px" id="tf-sort" onchange="applyFilter()"><option value="status" ${(fs.sort||'status')==='status'?'selected':''}>เรียงตามสถานะ</option><option value="deadline" ${fs.sort==='deadline'?'selected':''}>เรียงตาม Deadline</option><option value="created" ${fs.sort==='created'?'selected':''}>เรียงตามวันสร้าง</option></select>
+      <input  class="fc" style="width:150px" id="tf-q"   oninput="applyFilter()" placeholder="ค้นหา ID / Client..." value="${fs.q||''}" />
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
       <span style="font-size:11px;color:var(--t3);font-weight:600">📅 Deadline :</span>
       ${['','day','week','month'].map((v,i)=>{
         const labels = ['ทั้งหมด','วันนี้','สัปดาห์นี้','เดือนนี้'];
+        const active = (v||'') === (_period||'');
         return `<button id="tf-period-${v||'all'}" onclick="setPeriod('${v}')"
-          style="font-size:11px;font-weight:700;font-family:var(--sans);padding:5px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--bd);background:${v===''?'var(--grad)':'var(--s2)'};color:${v===''?'white':'var(--t2)'};transition:all .15s">
+          style="font-size:11px;font-weight:700;font-family:var(--sans);padding:5px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--bd);background:${active?'var(--grad)':'var(--s2)'};color:${active?'white':'var(--t2)'};transition:all .15s">
           ${labels[i]}</button>`;
       }).join('')}
       <span style="margin-left:auto;font-size:12px;color:var(--t3)" id="t-count">${visibleTickets.length} รายการ</span>
@@ -95,11 +100,13 @@ function applyFilter() {
   const s  = document.getElementById('tf-s')?.value || '';
   const c  = document.getElementById('tf-c')?.value || '';
   const p  = document.getElementById('tf-p')?.value || '';
-  // Specialist: always force filter to own name; Admin: use dropdown
-  // Specialist: filter to own name (specialist OR coSpecialist); Admin: use dropdown
   const sp = isSpecialist && myName ? myName : (document.getElementById('tf-sp')?.value || '');
   const pr = document.getElementById('tf-pri')?.value || '';
   const q  = (document.getElementById('tf-q')?.value || '').toLowerCase();
+  const sort = document.getElementById('tf-sort')?.value || 'status';
+
+  // Save filter state for restore after render()
+  window._ticketFilters = { s:s, c:c, p:p, sp:sp, pri:pr, q:document.getElementById('tf-q')?.value||'', sort:sort };
 
   const now   = new Date(); now.setHours(0,0,0,0);
   const day1  = new Date(now);
@@ -108,14 +115,12 @@ function applyFilter() {
   const mon0  = new Date(now.getFullYear(), now.getMonth(), 1);
   const mon1  = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-  // Always start from role-filtered tickets, never raw TICKETS
   const baseTickets = getVisibleTickets();
 
-  const r = baseTickets.filter(t => {
+  var r = baseTickets.filter(t => {
     if (s  && t.status !== s) return false;
     if (c  && t.client !== c) return false;
     if (p  && t.platform !== p) return false;
-    // Admin/Super Admin: allow dropdown filter by specialist name
     if (!isSpecialist && sp && (t.specialist||'') !== sp) return false;
     if (pr && t.priority !== pr) return false;
     if (q  && !t.id.toLowerCase().includes(q) && !t.client.toLowerCase().includes(q) && !t.platform.toLowerCase().includes(q)) return false;
@@ -127,6 +132,16 @@ function applyFilter() {
     }
     return true;
   });
+
+  // Sort
+  var statusOrder = { overdue:0, todo:1, inprogress:2, hold:3, done:4 };
+  if (sort === 'status') {
+    r.sort(function(a,b){ return (statusOrder[a.status]||9) - (statusOrder[b.status]||9); });
+  } else if (sort === 'deadline') {
+    r.sort(function(a,b){ return (a.deadline||'9999') < (b.deadline||'9999') ? -1 : 1; });
+  } else if (sort === 'created') {
+    r.sort(function(a,b){ return (b.created||'') < (a.created||'') ? -1 : 1; });
+  }
 
   document.getElementById('tbody').innerHTML = mkRows(r);
   document.getElementById('t-count').textContent = r.length + ' รายการ';
@@ -141,7 +156,7 @@ function openDetail(id) {
   // Mark notifications for this ticket as row-read
   _notifs.forEach(n => { if (n.ticketId === id) n.readRow = true; });
   const tbody = document.getElementById('tbody');
-  if (tbody) tbody.innerHTML = mkRows(getVisibleTickets());
+  if (tbody && typeof applyFilter === 'function') applyFilter();
   document.getElementById('detail-content').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:20px">
       <div>
