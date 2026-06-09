@@ -523,22 +523,30 @@ window.deleteProject = async function(i) {
 
 // ── OVERRIDE: removeEmployee/resignEmployee/undoResign → Firestore ──
 const _origRemoveEmployee = window.removeEmployee;
-window.removeEmployee = async function(i) {
-  _origRemoveEmployee(i);
-  const m = TEAM[i];
-  if (m) await _saveMember(m);
+window.removeEmployee = function(i) {
+  window.resignEmployee(i);
 };
-const _origResignEmployee = window.resignEmployee;
-window.resignEmployee = async function(i) {
-  _origResignEmployee(i);
+window.resignEmployee = function(i) {
   const m = TEAM[i];
-  if (m) await _saveMember(m);
+  if (!m) return;
+  showConfirm('บันทึก ' + (m.nickname||m.name) + ' ออกจากทีม?', 'ข้อมูลจะยังคงอยู่ในระบบ แต่จะไม่แสดงใน Dashboard', async function() {
+    m.resigned = true;
+    m.resignedDate = new Date().toISOString().split('T')[0];
+    await _saveMember(m);
+    showToast('🚪 บันทึก ' + (m.nickname||m.name) + ' ออกจากทีมแล้ว');
+    render();
+  });
 };
-const _origUndoResign = window.undoResign;
-window.undoResign = async function(i) {
-  _origUndoResign(i);
+window.undoResign = function(i) {
   const m = TEAM[i];
-  if (m) await _saveMember(m);
+  if (!m) return;
+  showConfirm('ให้ ' + (m.nickname||m.name) + ' กลับมาทำงาน?', 'จะแสดงใน Dashboard ตามปกติ', async function() {
+    m.resigned = false;
+    m.resignedDate = null;
+    await _saveMember(m);
+    showToast('✅ ' + (m.nickname||m.name) + ' กลับมาทำงานแล้ว');
+    render();
+  });
 };
 
 
