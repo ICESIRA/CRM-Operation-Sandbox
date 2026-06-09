@@ -224,14 +224,14 @@ function openDetail(id) {
         <label class="fl" style="margin-bottom:6px">มอบหมาย Specialist</label>
         <select class="fc" id="d-spec">
           <option value="">-- ยังไม่มอบหมาย --</option>
-          ${TEAM.filter(m=>!m.resigned||m.name===t.specialist).map(m=>`<option value="${m.name}"${t.specialist===m.name?' selected':''}>${m.icon||'👤'} ${m.nickname||m.name}${m.resigned?' (ออกแล้ว)':''}</option>`).join('')}
+          ${TEAM.filter(m=>!m.resigned).map(m=>`<option value="${m.name}"${t.specialist===m.name?' selected':''}>${m.icon||'👤'} ${m.nickname||m.name}</option>`).join('')}
         </select>
       </div>
       <div style="flex:1;min-width:180px">
         <label class="fl" style="margin-bottom:6px">🤝 ฝากงานร่วม <span style="color:var(--t3);font-weight:400">(ไม่บังคับ)</span></label>
         <select class="fc" id="d-cospec">
           <option value="">-- ไม่มี --</option>
-          ${TEAM.filter(m=>!m.resigned||m.name===t.coSpecialist).map(m=>`<option value="${m.name}"${t.coSpecialist===m.name?' selected':''}>${m.icon||'👤'} ${m.nickname||m.name}${m.resigned?' (ออกแล้ว)':''}</option>`).join('')}
+          ${TEAM.filter(m=>!m.resigned).map(m=>`<option value="${m.name}"${t.coSpecialist===m.name?' selected':''}>${m.icon||'👤'} ${m.nickname||m.name}</option>`).join('')}
         </select>
       </div>
     </div>

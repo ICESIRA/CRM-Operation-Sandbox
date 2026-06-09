@@ -73,7 +73,7 @@ function renderClients() {
             <select onchange="updateProjOwner(${i}, this.value)"
               style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;color:var(--t1);font-family:var(--sans);font-size:12px;font-weight:600;padding:4px 8px;outline:none;cursor:pointer"
               onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--bd)'">
-              ${TEAM.filter(t=>!t.resigned||t.name===p.member).map(t=>`<option value="${t.name}" ${p.member===t.name?'selected':''}>${t.icon||'👤'} ${t.nickname||t.name}${t.resigned?' (ออกแล้ว)':''}</option>`).join('')}
+              ${TEAM.filter(t=>!t.resigned).map(t=>`<option value="${t.name}" ${p.member===t.name?'selected':''}>${t.icon||'👤'} ${t.nickname||t.name}</option>`).join('')}
             </select>
           </td>
           <td><span style="font-family:var(--mono);font-weight:700;color:var(--accent3)">${totalAccess(p)}</span></td>
