@@ -9,6 +9,7 @@
 </head>
 <body>
 
+
 <!-- LOGIN OVERLAY -->
 <div id="login-overlay" style="position:fixed;inset:0;background:#f0f2f5;display:none;align-items:center;justify-content:center;z-index:99999">
   <div style="text-align:center;max-width:400px;width:90%">
@@ -43,7 +44,6 @@
     <div class="nav active" onclick="nav(this,'head-tickets')"><span class="ni">🎫</span>All Tickets<span class="nb nb-red" id="nb-overdue">2</span></div>
     <div class="nav" id="nav-personnel" onclick="nav(this,'head-team')"><span class="ni">👥</span>Personnel</div>
     <div class="nav" id="nav-project" onclick="nav(this,'head-clients')"><span class="ni">🗂️</span>Project</div>
-
   </div>
   <div style="flex:1"></div>
   <div style="padding:0 12px 4px">
@@ -619,12 +619,11 @@
 </div>
 
 
-<!-- ═══ JS Modules (load order matters) ═══ -->
+<!-- ═══ JS Modules ═══ -->
 <script src="js/config.js"></script>
 <script src="js/helpers.js"></script>
 <script src="js/state.js"></script>
 <script src="js/ui.js"></script>
-
 <script src="js/dashboard.js"></script>
 <script src="js/tickets.js"></script>
 <script src="js/team.js"></script>
@@ -634,22 +633,6 @@
 <script src="js/settings.js"></script>
 <script src="js/quotes.js"></script>
 <script src="js/notifications.js"></script>
-
-<script>
-// ── POST-LOAD INIT ──────────────────────────────────────────
-_localConfirmAddProject = confirmAddProject;
-
-// DEV MODE
-document.addEventListener('DOMContentLoaded', function() {
-  window._currentRole = 'Super Admin'; _currentRole = 'Super Admin';
-  document.getElementById('sb-username').textContent = 'Dev Mode';
-  document.getElementById('sb-userrole').textContent = '👑 Super Admin';
-  document.getElementById('sb-av').textContent = 'D';
-  document.getElementById('topbar-role').textContent = '👑 Super Admin';
-  if (!localStorage.getItem('crm-theme')) localStorage.setItem('crm-theme','dompet');
-  render(); document.getElementById('content').style.opacity = '1';
-});
-</script>
 
 <!-- Firebase (ES Module — must load last) -->
 <script type="module" src="js/firestore.js"></script>

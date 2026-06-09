@@ -1,12 +1,11 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — quotes.js
-// Quotation file handling, preview, upload, download
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — quotes.js ──
+// Quotation file handling
 // ── QUOTATION FILE HELPERS ────────────────────────────────────
 let _pendingQuoteNew    = null;
 let _pendingQuoteStatus = null;
 let _pendingQuoteRenew  = null;
 const _quoteStore = {};
+
 
 function isAllowedQuoteFile(file) {
   const ext = (file.name.split('.').pop()||'').toLowerCase();
@@ -227,3 +226,4 @@ function downloadQuoteFile(key, filename) {
 
 // Keep viewQuoteFile as alias for backward compatibility (status log buttons)
 function viewQuoteFile(key, filename) { downloadQuoteFile(key, filename); }
+

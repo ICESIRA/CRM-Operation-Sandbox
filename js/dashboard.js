@@ -1,7 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — dashboard.js
-// Dashboard rendering with all sections
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — dashboard.js ──
+// Dashboard rendering
 // ── DASHBOARD ─────────────────────────────────────────────────
 function renderDashboard() {
   var isSpec = _currentRole === 'Specialist';
@@ -550,4 +548,5 @@ function setDashPeriod(p) {
   window._dashPeriod = p;
   render();
 }
+
 

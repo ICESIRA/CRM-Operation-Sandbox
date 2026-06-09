@@ -1,7 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — team.js
-// Personnel page, certificates, KPI, employee CRUD
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — team.js ──
+// Personnel, certificates, KPI, employee CRUD
 // ── CERTIFICATE HELPERS ──────────────────────────────────────
 // cert file store: key → base64
 var _certFileStore = {};
@@ -160,6 +158,8 @@ function certCardPreview(key, name) {
   }
 }
 
+
+// ── TEAM ─────────────────────────────────────────────────────
 function renderTeam() {
   const activeCount = TEAM.filter(m => !m.resigned).length;
   const resignedCount = TEAM.filter(m => m.resigned).length;
@@ -174,6 +174,7 @@ function renderTeam() {
     </div>
     <div class="three-col" id="team-grid">${renderTeamCards()}</div>`;
 }
+function toggleResigned() { window._showResigned = !window._showResigned; render(); }
 
 function renderTeamCards() {
   const roleIcon  = {'Super Admin':'👑', Admin:'💼', Specialist:'⚡', Consultant:'💼', 'Head Consultant':'👑'};
@@ -212,7 +213,6 @@ function renderTeamCards() {
   }
 
   return TEAM.map((m,i)=>{
-    // Filter: hide resigned unless toggled on
     if (m.resigned && !window._showResigned) return '';
     const kpi   = m.tickets ? Math.round(m.done/m.tickets*100) : 0;
     const color = m.resigned ? 'var(--t3)' : (roleColor[m.role] || 'var(--accent3)');
@@ -375,7 +375,8 @@ function addEmployee() {
   if (sh) sh.innerHTML = `👥 Personnel <span style="font-size:12px;font-weight:400;color:var(--t3);margin-left:6px">${TEAM.length} คน</span>`;
 }
 
-// บันทึกพนักงานออก (ไม่ลบข้อมูล — แค่ mark เป็น resigned)
+function removeEmployee(i) { resignEmployee(i); }
+
 function resignEmployee(i) {
   const m = TEAM[i];
   if (!m) return;
@@ -387,7 +388,6 @@ function resignEmployee(i) {
   });
 }
 
-// ยกเลิกการออก (กลับมาทำงาน)
 function undoResign(i) {
   const m = TEAM[i];
   if (!m) return;
@@ -399,14 +399,4 @@ function undoResign(i) {
   });
 }
 
-// เดิมไว้สำหรับ Firestore override compatibility
-function removeEmployee(i) {
-  resignEmployee(i);
-}
-
-// Toggle แสดง/ซ่อนคนที่ออกแล้ว
-function toggleResigned() {
-  window._showResigned = !window._showResigned;
-  render();
-}
 

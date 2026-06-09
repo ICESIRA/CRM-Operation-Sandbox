@@ -1,7 +1,6 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — state.js
-// Data stores, navigation, role management, render router
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — state.js ──
+// Data stores, navigation, render router
+// ── DATA ──────────────────────────────────────────────────────
 const TICKETS = [];
 let nextId = 1;
 
@@ -37,9 +36,6 @@ function canApproveTicket(ticket) {
   return false;
 }
 
-const PROJECTS = [];
-
-const TEAM = [];
 
 function getVisibleTickets() {
   if (_currentRole === 'Specialist') {
@@ -55,7 +51,8 @@ function getVisibleTickets() {
 const PAGE_TITLES = {
   'head-dashboard':'📊 Dashboard', 'head-tickets':'🎫 All Tickets',
   'head-team':'👥 Personnel', 'head-clients':'🗂️ Project', 'head-report':'📈 Report',
-  'head-settings':'⚙️ Settings'
+  'head-settings':'⚙️ Settings',
+
 };
 
 function nav(el, page) {
@@ -75,7 +72,11 @@ function render() {
 }
 
 
+// ══════════════════════════════════════════════════════════════
 
-// ── INIT placeholder ──────────────────────────────────────────
-// _localConfirmAddProject set by inline <script> in index.html after all modules load
-var _localConfirmAddProject = null;
+const TEAM = [];
+
+const PROJECTS = [];
+
+var _localConfirmAddProject = confirmAddProject;
+

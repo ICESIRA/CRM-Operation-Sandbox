@@ -1,7 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — tickets.js
-// All Tickets page, filters, ticket detail, create ticket
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — tickets.js ──
+// Ticket list, filters, detail, create
 // ── ALL TICKETS ───────────────────────────────────────────────
 function renderAllTickets() {
   const ALL_PLATFORMS = ['Facebook','Instagram','Google','Youtube','TikTok','Shopee','Lazada','Linkedin','Line','CPAS Shopee','CPAS Lazada','CPAS TikTok'];
@@ -371,6 +369,7 @@ function deleteTicket(id) {
   });
 }
 
+
 // ── CREATE TICKET ─────────────────────────────────────────────
 function openTicketModal() {
   const d = new Date(); d.setDate(d.getDate()+7);
@@ -454,3 +453,4 @@ function createTicket() {
   }
   render();
 }
+

@@ -1,7 +1,28 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — helpers.js
-// Date formatting, badge builders, input masks, member display
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — helpers.js ──
+// Date formatting, badges, masks, utilities
+function getMemberDisplay(nameOrNickname) {
+  if (!nameOrNickname) return '—';
+  const m = TEAM.find(t => t.name === nameOrNickname || t.nickname === nameOrNickname);
+  return m ? (m.nickname || m.name) : nameOrNickname;
+}
+
+// Get the TEAM member name for the currently logged-in user
+// Get current user display name for audit log
+function getAuditUser() {
+  var name = getCurrentMemberName();
+  if (name) return getMemberDisplay(name);
+  // fallback to email or sidebar name
+  if (_currentEmail) return _currentEmail.split('@')[0];
+  var el = document.getElementById('sb-username');
+  return el ? el.textContent : 'Unknown';
+}
+
+function getCurrentMemberName() {
+  if (!_currentEmail) return null;
+  var m = TEAM.find(function(t){ return t.email && t.email.toLowerCase().trim() === _currentEmail.toLowerCase().trim(); });
+  return m ? m.name : null;
+}
+
 // ── HELPERS ───────────────────────────────────────────────────
 function _parseDate(d) {
   if (!d) return null;
@@ -38,29 +59,6 @@ const mkDays  = d => {
   return `<span style="${style};font-family:var(--mono);font-size:12px">${label}</span>`;
 };
 
-function getMemberDisplay(nameOrNickname) {
-  if (!nameOrNickname) return '—';
-  const m = TEAM.find(t => t.name === nameOrNickname || t.nickname === nameOrNickname);
-  return m ? (m.nickname || m.name) : nameOrNickname;
-}
-
-// Get the TEAM member name for the currently logged-in user
-// Get current user display name for audit log
-function getAuditUser() {
-  var name = getCurrentMemberName();
-  if (name) return getMemberDisplay(name);
-  // fallback to email or sidebar name
-  if (_currentEmail) return _currentEmail.split('@')[0];
-  var el = document.getElementById('sb-username');
-  return el ? el.textContent : 'Unknown';
-}
-
-function getCurrentMemberName() {
-  if (!_currentEmail) return null;
-  var m = TEAM.find(function(t){ return t.email && t.email.toLowerCase().trim() === _currentEmail.toLowerCase().trim(); });
-  return m ? m.name : null;
-}
-
 function calcTenure(startDate) {
   const start = new Date(startDate);
   const now   = new Date();
@@ -88,6 +86,30 @@ function parseDMY(s) {
   if (d.length!==2 || m.length!==2 || y.length!==4) return '';
   return `${y}-${m}-${d}`;
 }
+
+
+// ── EMAIL VALIDATION ─────────────────────────────────────────
+function validateApEmail(input) {
+  const val = input.value.trim();
+  const err = document.getElementById('ap-email-err');
+  if (!err) return;
+  if (!val) { err.style.display='none'; input.style.borderColor=''; return; }
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  err.style.display = ok ? 'none' : 'block';
+  input.style.borderColor = ok ? '' : 'var(--red)';
+}
+
+// ── PHONE VALIDATION ─────────────────────────────────────────
+function validateApPhone(input) {
+  const val = input.value.trim();
+  const err = document.getElementById('ap-phone-err');
+  if (!err) return;
+  if (!val) { err.style.display='none'; input.style.borderColor=''; return; }
+  const ok = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/.test(val) || /^[0-9]{9,10}$/.test(val.replace(/-/g,''));
+  err.style.display = ok ? 'none' : 'block';
+  input.style.borderColor = ok ? '' : 'var(--red)';
+}
+
 
 // ── DATE MASK (dd/mm/yyyy) ────────────────────────────────────
 function maskDate(el) {
@@ -120,27 +142,4 @@ function maskPhone(el) {
   el.value = out;
 }
 
-// ── EMAIL VALIDATION ─────────────────────────────────────────
-function validateApEmail(input) {
-  const val = input.value.trim();
-  const err = document.getElementById('ap-email-err');
-  if (!err) return;
-  if (!val) { err.style.display='none'; input.style.borderColor=''; return; }
-  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-  err.style.display = ok ? 'none' : 'block';
-  input.style.borderColor = ok ? '' : 'var(--red)';
-}
 
-// ── PHONE VALIDATION ─────────────────────────────────────────
-function validateApPhone(input) {
-  const val = input.value.trim();
-  const err = document.getElementById('ap-phone-err');
-  if (!err) return;
-  if (!val) { err.style.display='none'; input.style.borderColor=''; return; }
-  const ok = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/.test(val) || /^[0-9]{9,10}$/.test(val.replace(/-/g,''));
-  err.style.display = ok ? 'none' : 'block';
-  input.style.borderColor = ok ? '' : 'var(--red)';
-}
-
-
-function pct(a,b) { return b > 0 ? Math.round(a/b*100) : 0; }

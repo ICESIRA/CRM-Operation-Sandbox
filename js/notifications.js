@@ -1,7 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — notifications.js
-// Notification sounds, push, quick status actions
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — notifications.js ──
+// Notifications, sounds, quick actions
 // ── NOTIFICATIONS ─────────────────────────────────────────────
 
 // ── NOTIFICATION SOUND ───────────────────────────────────────
@@ -179,4 +177,5 @@ function quickStatus(id, status) {
   showToast(`${SI[finalStatus]} #${id} → ${SL[finalStatus]}`);
   render();
 }
+
 

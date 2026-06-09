@@ -1,7 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — ui.js
-// Modal management, toast, confirm, global search
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — ui.js ──
+// Modal, toast, confirm, global search
 // ── CONFIRM ───────────────────────────────────────────────────
 function showConfirm(title, msg, cb) {
   document.getElementById('confirm-title').textContent = title;
@@ -39,3 +37,4 @@ function showToast(msg) {
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), 3200);
 }
+

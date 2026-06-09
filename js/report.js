@@ -1,7 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — report.js
-// Report page rendering
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — report.js ──
+// Report page
 // ── REPORT ────────────────────────────────────────────────────
 function renderReport() {
   const n = TICKETS.length;
@@ -36,4 +34,5 @@ function renderReport() {
       </div>
     </div>`;
 }
+
 

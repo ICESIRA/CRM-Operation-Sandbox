@@ -1,7 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — settings.js
-// Settings page, theme/font application
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — settings.js ──
+// Settings, theme, font
 // ── SETTINGS ──────────────────────────────────────────────────
 function renderSettings() {
   const themes = [

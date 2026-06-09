@@ -1,68 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — projects-edit.js
-// Add/edit project, renew, access management, budget bar
-// ══════════════════════════════════════════════════════════════
-function updateProjDate(i, field, val) {
-  if (!val) return;
-  PROJECTS[i][field] = val;
-  showToast(`✓ บันทึกวันที่แล้ว`);
-  render();
-}
-
-function renewProject(i) {
-  const p = PROJECTS[i];
-  const today = new Date();
-  const currEnd = new Date(p.endDate);
-  currEnd.setFullYear(currEnd.getFullYear()+1);
-
-  const toDMY = d => {
-    const dd = String(d.getDate()).padStart(2,'0');
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  };
-
-  document.getElementById('renew-proj-name').textContent = p.name;
-  document.getElementById('renew-new-start').value = toDMY(today);
-  document.getElementById('renew-new-end').value   = toDMY(currEnd);
-  document.getElementById('renew-note').value = '';
-  document.getElementById('renew-idx').value = i;
-  clearQuoteRenew();
-  _currentProjIdx = null;
-  document.getElementById('overlay-project').classList.remove('show');
-  document.getElementById('overlay-renew').classList.add('show');
-}
-
-function confirmRenew() {
-  const i        = parseInt(document.getElementById('renew-idx').value);
-  const startRaw = document.getElementById('renew-new-start').value;
-  const endRaw   = document.getElementById('renew-new-end').value;
-  const note     = document.getElementById('renew-note').value.trim();
-  if (!note) { showToast('⚠ กรุณากรอกหมายเหตุก่อนยืนยันต่อบริการ'); return; }
-  if (!_pendingQuoteRenew) { showToast('⚠ กรุณาแนบใบเสนอราคาหรือเอกสารชำระเงินก่อนต่อบริการ'); return; }
-  if (!_pendingQuoteRenew) { showToast('⚠ กรุณาแนบใบเสนอราคาหรือเอกสารชำระเงินก่อนต่อบริการ'); return; }
-  const newStart = parseDMY(startRaw);
-  const newEnd   = parseDMY(endRaw);
-  if (!newStart || !newEnd) { showToast('⚠ กรุณากรอกวันที่ให้ถูกต้อง (วว/ดด/ปปปป)'); return; }
-  if (newEnd <= newStart)   { showToast('⚠ วันสิ้นสุดต้องหลังวันเริ่ม'); return; }
-  const p = PROJECTS[i];
-  p.startDate = newStart;
-  p.endDate   = newEnd;
-  const renewLog = { date: newStart, status:'active', reason: note || 'ต่อบริการ' };
-  if (_pendingQuoteRenew) renewLog.quoteFile = _pendingQuoteRenew;
-  if (p.status !== 'active') {
-    p.status = 'active';
-    p.statusLog.push(renewLog);
-  } else {
-    // Still log the renewal even if already active
-    p.statusLog.push(renewLog);
-  }
-  _pendingQuoteRenew = null;
-  closeModal('overlay-renew');
-  showToast(`🔄 ต่อบริการ ${p.name} แล้ว · ${fmtDate(newStart)} → ${fmtDate(newEnd)}`);
-  render();
-}
-
+// ── CRM Operations — projects-edit.js ──
+// Add/edit project, renew, access, budget bar
 // ── ADD PROJECT ───────────────────────────────────────────────
 let _apAccesses = [];
 
@@ -146,15 +83,6 @@ function renderApAccessList() {
     </div>`).join('');
 }
 
-function parseDMY(s) {
-  // converts dd/mm/yyyy → yyyy-mm-dd, returns '' if invalid
-  if (!s) return '';
-  const parts = s.split('/');
-  if (parts.length !== 3) return '';
-  const [d, m, y] = parts;
-  if (d.length!==2 || m.length!==2 || y.length!==4) return '';
-  return `${y}-${m}-${d}`;
-}
 
 function confirmAddProject() {
   if (checkCompanyDup()) { showToast('⚠ ชื่อบริษัทซ้ำในระบบ ไม่สามารถเพิ่มได้'); return; }
@@ -547,3 +475,4 @@ function hideCompanySuggest() {
   const box = document.getElementById('ap-company-suggest');
   if (box) box.style.display = 'none';
 }
+

@@ -1,7 +1,5 @@
-// ══════════════════════════════════════════════════════════════
-// CRM Operations — firestore.js (ES Module)
-// Firebase auth, Firestore sync, function overrides
-// ══════════════════════════════════════════════════════════════
+// ── CRM Operations — firestore.js (ES Module) ──
+// Firebase auth, Firestore sync, overrides
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp, getDoc, getDocs }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -30,7 +28,7 @@ _currentRole  = null;
 _currentEmail = null;
 
 const ROLE_ICONS = { 'Super Admin':'👑', 'Admin':'💼', 'Specialist':'⚡' };
-const SPECIALIST_PAGES = new Set(['head-dashboard','head-tickets','head-clients','head-settings','head-workflow']);
+const SPECIALIST_PAGES = new Set(['head-dashboard','head-tickets','head-clients','head-settings']);
 
 function applyRoleUI() {
   const icon = ROLE_ICONS[_currentRole] || '👤';
@@ -470,26 +468,22 @@ window.deleteProject = async function(i) {
   setTimeout(() => clearInterval(waitForDelete), 5000);
 };
 
-// ── OVERRIDE: resignEmployee → Firestore (save resigned flag) ──
+// ── OVERRIDE: removeEmployee/resignEmployee/undoResign → Firestore ──
+const _origRemoveEmployee = window.removeEmployee;
+window.removeEmployee = async function(i) {
+  _origRemoveEmployee(i);
+  const m = TEAM[i];
+  if (m) await _saveMember(m);
+};
 const _origResignEmployee = window.resignEmployee;
 window.resignEmployee = async function(i) {
   _origResignEmployee(i);
   const m = TEAM[i];
   if (m) await _saveMember(m);
 };
-
-// ── OVERRIDE: undoResign → Firestore ───────────────────────
 const _origUndoResign = window.undoResign;
 window.undoResign = async function(i) {
   _origUndoResign(i);
-  const m = TEAM[i];
-  if (m) await _saveMember(m);
-};
-
-// ── OVERRIDE: removeEmployee → Firestore (backward compat) ──
-const _origRemoveEmployee = window.removeEmployee;
-window.removeEmployee = async function(i) {
-  _origRemoveEmployee(i);
   const m = TEAM[i];
   if (m) await _saveMember(m);
 };
@@ -506,3 +500,4 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!localStorage.getItem('crm-theme')) localStorage.setItem('crm-theme','dompet');
   render(); document.getElementById('content').style.opacity = '1';
 });
+
