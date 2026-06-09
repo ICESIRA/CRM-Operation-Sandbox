@@ -19,7 +19,7 @@ function renderClients() {
   if (ownerFilter !== 'all') filtered = filtered.filter(p => p.member === ownerFilter);
 
   // Owner options: show all team members so filter is always visible
-  const ownerOptions = TEAM;
+  const ownerOptions = TEAM.filter(function(t){ return !t.resigned && t.role === 'Specialist'; });
   const isFiltered = activeFilter !== 'all' || ownerFilter !== 'all';
   const tabStyle = (key) => {
     const isOn = activeFilter === key;
@@ -78,7 +78,7 @@ function renderClients() {
             <select onchange="updateProjOwner(${i}, this.value)"
               style="background:var(--s2);border:1px solid var(--bd);border-radius:7px;color:var(--t1);font-family:var(--sans);font-size:12px;font-weight:600;padding:4px 8px;outline:none;cursor:pointer"
               onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--bd)'">
-              ${TEAM.filter(t=>!t.resigned).map(t=>`<option value="${t.name}" ${p.member===t.name?'selected':''}>${t.icon||'👤'} ${t.nickname||t.name}</option>`).join('')}
+              ${TEAM.filter(t=>!t.resigned && t.role==='Specialist').map(t=>`<option value="${t.name}" ${p.member===t.name?'selected':''}>${t.icon||'👤'} ${t.nickname||t.name}</option>`).join('')}
             </select>
           </td>
           <td><span style="font-family:var(--mono);font-weight:700;color:var(--accent3)">${totalAccess(p)}</span></td>
