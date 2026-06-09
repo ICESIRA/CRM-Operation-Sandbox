@@ -55,8 +55,7 @@ function getVisibleTickets() {
 const PAGE_TITLES = {
   'head-dashboard':'📊 Dashboard', 'head-tickets':'🎫 All Tickets',
   'head-team':'👥 Personnel', 'head-clients':'🗂️ Project', 'head-report':'📈 Report',
-  'head-settings':'⚙️ Settings',
-  'head-workflow':'🔄 Workflow'
+  'head-settings':'⚙️ Settings'
 };
 
 function nav(el, page) {
@@ -68,7 +67,7 @@ function nav(el, page) {
 }
 
 function render() {
-  const fn = { 'head-dashboard':renderDashboard, 'head-tickets':renderAllTickets, 'head-team':renderTeam, 'head-clients':renderClients, 'head-report':renderReport, 'head-settings':renderSettings, 'head-workflow':renderWorkflow }[currentPage];
+  const fn = { 'head-dashboard':renderDashboard, 'head-tickets':renderAllTickets, 'head-team':renderTeam, 'head-clients':renderClients, 'head-report':renderReport, 'head-settings':renderSettings }[currentPage];
   document.getElementById('content').innerHTML = fn ? fn() : '<div style="padding:40px;color:var(--t3);text-align:center">🚧 กำลังพัฒนา</div>';
   const ov = TICKETS.filter(t=>t.status==='overdue').length;
   const nb = document.getElementById('nb-overdue');

@@ -470,12 +470,28 @@ window.deleteProject = async function(i) {
   setTimeout(() => clearInterval(waitForDelete), 5000);
 };
 
-// ── OVERRIDE: removeEmployee → Firestore ─────────────────────
+// ── OVERRIDE: resignEmployee → Firestore (save resigned flag) ──
+const _origResignEmployee = window.resignEmployee;
+window.resignEmployee = async function(i) {
+  _origResignEmployee(i);
+  const m = TEAM[i];
+  if (m) await _saveMember(m);
+};
+
+// ── OVERRIDE: undoResign → Firestore ───────────────────────
+const _origUndoResign = window.undoResign;
+window.undoResign = async function(i) {
+  _origUndoResign(i);
+  const m = TEAM[i];
+  if (m) await _saveMember(m);
+};
+
+// ── OVERRIDE: removeEmployee → Firestore (backward compat) ──
 const _origRemoveEmployee = window.removeEmployee;
 window.removeEmployee = async function(i) {
-  const m = TEAM[i];
   _origRemoveEmployee(i);
-  if (m?._fbId) await deleteDoc(doc(db, 'team', m._fbId));
+  const m = TEAM[i];
+  if (m) await _saveMember(m);
 };
 
 

@@ -71,7 +71,7 @@ function openAddProject() {
   // populate member dropdown from TEAM
   const sel = document.getElementById('ap-member');
   sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>' +
-    TEAM.map(t => `<option value="${t.name}">${t.icon||'👤'} ${t.nickname||t.name} — ${t.role}</option>`).join('');
+    TEAM.filter(t => !t.resigned).map(t => `<option value="${t.name}">${t.icon||'👤'} ${t.nickname||t.name} — ${t.role}</option>`).join('');
   // reset all fields
   ['ap-name','ap-company','ap-budget','ap-limit-budget','ap-phone','ap-key-contact','ap-pay-contact','ap-email','ap-page','ap-note'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';

@@ -12,7 +12,7 @@ function renderAllTickets() {
   const visibleTickets = getVisibleTickets();
 
   const clients = [...new Set(PROJECTS.map(p=>p.name))];
-  const specialists = TEAM.map(m=>({ name: m.name, nick: m.nickname||m.name }));
+  const specialists = TEAM.filter(m=>!m.resigned).map(m=>({ name: m.name, nick: m.nickname||m.name }));
 
   return `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
@@ -226,14 +226,14 @@ function openDetail(id) {
         <label class="fl" style="margin-bottom:6px">มอบหมาย Specialist</label>
         <select class="fc" id="d-spec">
           <option value="">-- ยังไม่มอบหมาย --</option>
-          ${TEAM.map(m=>`<option value="${m.name}"${t.specialist===m.name?' selected':''}>${m.icon||'👤'} ${m.nickname||m.name}</option>`).join('')}
+          ${TEAM.filter(m=>!m.resigned||m.name===t.specialist).map(m=>`<option value="${m.name}"${t.specialist===m.name?' selected':''}>${m.icon||'👤'} ${m.nickname||m.name}${m.resigned?' (ออกแล้ว)':''}</option>`).join('')}
         </select>
       </div>
       <div style="flex:1;min-width:180px">
         <label class="fl" style="margin-bottom:6px">🤝 ฝากงานร่วม <span style="color:var(--t3);font-weight:400">(ไม่บังคับ)</span></label>
         <select class="fc" id="d-cospec">
           <option value="">-- ไม่มี --</option>
-          ${TEAM.map(m=>`<option value="${m.name}"${t.coSpecialist===m.name?' selected':''}>${m.icon||'👤'} ${m.nickname||m.name}</option>`).join('')}
+          ${TEAM.filter(m=>!m.resigned||m.name===t.coSpecialist).map(m=>`<option value="${m.name}"${t.coSpecialist===m.name?' selected':''}>${m.icon||'👤'} ${m.nickname||m.name}${m.resigned?' (ออกแล้ว)':''}</option>`).join('')}
         </select>
       </div>
     </div>
@@ -390,12 +390,12 @@ function openTicketModal() {
     activeProjects.map(p => `<option value="${p.name}">${p.name} (${p.company})</option>`).join('');
   document.getElementById('tm-platform').innerHTML = '<option value="">-- เลือก Client ก่อน --</option>';
 
-  // Populate specialist from TEAM
+  // Populate specialist from TEAM (exclude resigned)
   const specOpts = '<option value="">-- ยังไม่มอบหมาย --</option>' +
-    TEAM.map(t => `<option value="${t.name}">${t.icon||'👤'} ${t.nickname||t.name}</option>`).join('');
+    TEAM.filter(t => !t.resigned).map(t => `<option value="${t.name}">${t.icon||'👤'} ${t.nickname||t.name}</option>`).join('');
   document.getElementById('tm-specialist').innerHTML = specOpts;
   document.getElementById('tm-cospec').innerHTML = '<option value="">-- ไม่มี --</option>' +
-    TEAM.map(t => `<option value="${t.name}">${t.icon||'👤'} ${t.nickname||t.name}</option>`).join('');
+    TEAM.filter(t => !t.resigned).map(t => `<option value="${t.name}">${t.icon||'👤'} ${t.nickname||t.name}</option>`).join('');
 
   document.getElementById('modal-create').classList.add('show');
 }

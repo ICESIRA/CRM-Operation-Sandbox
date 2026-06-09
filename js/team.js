@@ -161,10 +161,16 @@ function certCardPreview(key, name) {
 }
 
 function renderTeam() {
+  const activeCount = TEAM.filter(m => !m.resigned).length;
+  const resignedCount = TEAM.filter(m => m.resigned).length;
+  const showResigned = window._showResigned || false;
   return `
     <div class="sh">
-      <div class="sh-title">👥 Personnel <span style="font-size:12px;font-weight:400;color:var(--t3);margin-left:6px">${TEAM.length} คน</span></div>
-      <button class="btn btn-primary btn-sm" onclick="openAddEmployee()">＋ เพิ่มพนักงาน</button>
+      <div class="sh-title">👥 Personnel <span style="font-size:12px;font-weight:400;color:var(--t3);margin-left:6px">${activeCount} คนทำงาน${resignedCount ? ` · <span style="color:var(--red)">${resignedCount} ออกแล้ว</span>` : ''}</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        ${resignedCount ? `<button class="btn btn-ghost btn-sm" onclick="toggleResigned()" style="font-size:11px">${showResigned ? '👁 ซ่อนคนออก' : '👤 ดูคนที่ออก ('+resignedCount+')'}</button>` : ''}
+        <button class="btn btn-primary btn-sm" onclick="openAddEmployee()">＋ เพิ่มพนักงาน</button>
+      </div>
     </div>
     <div class="three-col" id="team-grid">${renderTeamCards()}</div>`;
 }
@@ -206,24 +212,29 @@ function renderTeamCards() {
   }
 
   return TEAM.map((m,i)=>{
+    // Filter: hide resigned unless toggled on
+    if (m.resigned && !window._showResigned) return '';
     const kpi   = m.tickets ? Math.round(m.done/m.tickets*100) : 0;
-    const color = roleColor[m.role] || 'var(--accent3)';
-    const icon  = roleIcon[m.role]  || '💼';
-    return `<div class="card" style="position:relative">
+    const color = m.resigned ? 'var(--t3)' : (roleColor[m.role] || 'var(--accent3)');
+    const icon  = m.resigned ? '🚪' : (roleIcon[m.role]  || '💼');
+    return `<div class="card" style="position:relative;${m.resigned ? 'opacity:.6;' : ''}">
+      ${m.resigned ? '<div style="position:absolute;top:10px;right:12px;font-size:10px;font-weight:800;color:var(--red);background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;padding:2px 8px">ออกแล้ว</div>' : ''}
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
         <div style="width:44px;height:44px;border-radius:12px;background:var(--s3);border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:20px">${icon}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:800">${m.name}</div>
           ${m.nickname ? `<div style="font-size:12px;color:var(--t2);font-weight:600;margin-top:1px">"${m.nickname}"</div>` : ''}
-          <div style="font-size:11px;color:${color};margin-top:2px">${m.role}</div>
+          <div style="font-size:11px;color:${color};margin-top:2px">${m.role}${m.resigned ? ' · <span style="color:var(--red)">ออกเมื่อ '+fmtDate(m.resignedDate)+'</span>' : ''}</div>
         </div>
         <div style="display:flex;gap:2px;align-items:center">
-          <button onclick="editEmployee(${i})" title="แก้ไขข้อมูล"
+          ${!m.resigned ? `<button onclick="editEmployee(${i})" title="แก้ไขข้อมูล"
             style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:5px;transition:color .15s"
-            onmouseover="this.style.color='var(--accent3)'" onmouseout="this.style.color='var(--t3)'">✏️</button>
-          <button onclick="removeEmployee(${i})" title="ลบพนักงาน"
+            onmouseover="this.style.color='var(--accent3)'" onmouseout="this.style.color='var(--t3)'">✏️</button>` : ''}
+          ${!m.resigned ? `<button onclick="resignEmployee(${i})" title="บันทึกพนักงานออก"
             style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:4px 6px;border-radius:5px;transition:color .15s"
-            onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--t3)'">✕</button>
+            onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--t3)'">🚪</button>` : `<button onclick="undoResign(${i})" title="ยกเลิกการออก"
+            style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px;padding:4px 6px;border-radius:5px;transition:color .15s"
+            onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--t3)'">↩️</button>`}
         </div>
       </div>
       <div class="info-grid" style="grid-template-columns:repeat(3,1fr)">
@@ -364,12 +375,38 @@ function addEmployee() {
   if (sh) sh.innerHTML = `👥 Personnel <span style="font-size:12px;font-weight:400;color:var(--t3);margin-left:6px">${TEAM.length} คน</span>`;
 }
 
-function removeEmployee(i) {
-  const name = TEAM[i]?.name;
-  showConfirm(`ลบ ${name} ออกจากทีม?`, `ข้อมูลของ ${name} จะถูกลบออกจากระบบถาวร`, () => {
-    TEAM.splice(i, 1);
-    showToast(`🗑 ลบ ${name} แล้ว`);
+// บันทึกพนักงานออก (ไม่ลบข้อมูล — แค่ mark เป็น resigned)
+function resignEmployee(i) {
+  const m = TEAM[i];
+  if (!m) return;
+  showConfirm(`บันทึก ${m.nickname || m.name} ออกจากทีม?`, `ข้อมูลจะยังคงอยู่ในระบบ แต่จะไม่แสดงใน Dashboard`, () => {
+    m.resigned = true;
+    m.resignedDate = new Date().toISOString().split('T')[0];
+    showToast(`🚪 บันทึก ${m.nickname || m.name} ออกจากทีมแล้ว`);
     render();
   });
+}
+
+// ยกเลิกการออก (กลับมาทำงาน)
+function undoResign(i) {
+  const m = TEAM[i];
+  if (!m) return;
+  showConfirm(`ให้ ${m.nickname || m.name} กลับมาทำงาน?`, `จะแสดงใน Dashboard ตามปกติ`, () => {
+    m.resigned = false;
+    m.resignedDate = null;
+    showToast(`✅ ${m.nickname || m.name} กลับมาทำงานแล้ว`);
+    render();
+  });
+}
+
+// เดิมไว้สำหรับ Firestore override compatibility
+function removeEmployee(i) {
+  resignEmployee(i);
+}
+
+// Toggle แสดง/ซ่อนคนที่ออกแล้ว
+function toggleResigned() {
+  window._showResigned = !window._showResigned;
+  render();
 }
 

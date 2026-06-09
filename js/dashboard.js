@@ -116,7 +116,7 @@ function renderDashboard() {
   /* ═══════════════════════ ADMIN / SUPER ADMIN VIEW ══════════════════════ */
 
   var viewMode = window._dashView || 'team';
-  var memberList = TEAM.filter(function(m){ return m.role === 'Specialist' || m.role === 'Admin' || m.role === 'Super Admin'; });
+  var memberList = TEAM.filter(function(m){ return !m.resigned && m.role !== 'Super Admin' && (m.role === 'Specialist' || m.role === 'Admin'); });
   var showMembers = viewMode === 'team' ? memberList : memberList.filter(function(m){ return m.name === viewMode; });
 
   // ── SAMPLE DATA ถูกลบออกแล้ว — ใช้ข้อมูลจริงจาก Firestore เท่านั้น ──
