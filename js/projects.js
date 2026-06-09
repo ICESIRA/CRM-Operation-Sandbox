@@ -510,5 +510,3 @@ function deleteProject(i) {
     }
   );
 }
-
-function updateProjDate(i, field, val) {

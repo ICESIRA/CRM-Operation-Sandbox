@@ -8,9 +8,6 @@ let _pendingQuoteStatus = null;
 let _pendingQuoteRenew  = null;
 const _quoteStore = {};
 
-const ALLOWED_QUOTE_TYPES = ['application/pdf','image/png','image/jpeg','image/webp'];
-const ALLOWED_QUOTE_EXTS  = ['pdf','png','jpg','jpeg','webp'];
-
 function isAllowedQuoteFile(file) {
   const ext = (file.name.split('.').pop()||'').toLowerCase();
   return ALLOWED_QUOTE_TYPES.includes(file.type) || ALLOWED_QUOTE_EXTS.includes(ext);

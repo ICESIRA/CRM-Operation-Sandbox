@@ -506,4 +506,3 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!localStorage.getItem('crm-theme')) localStorage.setItem('crm-theme','dompet');
   render(); document.getElementById('content').style.opacity = '1';
 });
-</script>

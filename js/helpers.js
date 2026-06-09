@@ -61,16 +61,6 @@ function getCurrentMemberName() {
   return m ? m.name : null;
 }
 
-// Returns the tickets visible to the current user
-function getVisibleTickets() {
-  if (_currentRole === 'Specialist') {
-    var myName = getCurrentMemberName();
-    return myName ? TICKETS.filter(function(t){
-      return t.specialist === myName || t.coSpecialist === myName;
-    }) : [];
-  }
-  return TICKETS;
-
 function calcTenure(startDate) {
   const start = new Date(startDate);
   const now   = new Date();
@@ -152,32 +142,5 @@ function validateApPhone(input) {
   input.style.borderColor = ok ? '' : 'var(--red)';
 }
 
-
-function isAllowedQuoteFile(file) {
-  const ext = (file.name.split('.').pop()||'').toLowerCase();
-  return ALLOWED_QUOTE_TYPES.includes(file.type) || ALLOWED_QUOTE_EXTS.includes(ext);
-}
-
-function fileIcon(name) {
-  const ext = (name.split('.').pop()||'').toLowerCase();
-  if (ext === 'pdf') return '📕';
-  if (['png','jpg','jpeg','webp'].includes(ext)) return '🖼';
-  return '📄';
-}
-function fmtFileSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
-  return (bytes/1048576).toFixed(1) + ' MB';
-}
-
-function dataURLtoBlob(dataUrl) {
-  const arr = dataUrl.split(',');
-  const mime = arr[0].match(/:(.*?);/)[1];
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8 = new Uint8Array(n);
-  while (n--) u8[n] = bstr.charCodeAt(n);
-  return new Blob([u8], { type: mime });
-}
 
 function pct(a,b) { return b > 0 ? Math.round(a/b*100) : 0; }
