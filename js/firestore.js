@@ -360,6 +360,34 @@ window.saveProjContact = async function(projIdx) {
   await _saveProject(PROJECTS[projIdx]);
 };
 
+// ── OVERRIDE: saveRoutines → Firestore ──────────────────────
+const _origSaveRoutines = window.saveRoutines;
+window.saveRoutines = async function(projIdx) {
+  _origSaveRoutines(projIdx);
+  await _saveProject(PROJECTS[projIdx]);
+};
+
+// ── OVERRIDE: addRoutine → Firestore ────────────────────────
+const _origAddRoutine = window.addRoutine;
+window.addRoutine = async function(projIdx) {
+  _origAddRoutine(projIdx);
+  await _saveProject(PROJECTS[projIdx]);
+};
+
+// ── OVERRIDE: removeRoutine → Firestore ─────────────────────
+const _origRemoveRoutine = window.removeRoutine;
+window.removeRoutine = async function(projIdx, routineIdx) {
+  _origRemoveRoutine(projIdx, routineIdx);
+  await _saveProject(PROJECTS[projIdx]);
+};
+
+// ── OVERRIDE: toggleRoutine → Firestore ─────────────────────
+const _origToggleRoutine = window.toggleRoutine;
+window.toggleRoutine = async function(projIdx, routineIdx, checked) {
+  _origToggleRoutine(projIdx, routineIdx, checked);
+  await _saveProject(PROJECTS[projIdx]);
+};
+
 // ── OVERRIDE: updateProjDate → Firestore ────────────────────
 const _origUpdateProjDate = window.updateProjDate;
 window.updateProjDate = async function(i, field, val) {

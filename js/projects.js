@@ -445,6 +445,68 @@ function openProject(i) {
       </div>` : ''}
     </div>
 
+    <!-- Routine Checklist -->
+    <div style="margin-bottom:14px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.08em">🔄 Routine Checklist</div>
+        <button onclick="saveRoutines(${i})"
+          style="background:var(--grad);border:none;color:white;border-radius:7px;padding:5px 13px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--sans)">
+          💾 บันทึก
+        </button>
+      </div>
+
+      <!-- Existing routines -->
+      <div id="routine-list-${i}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+        ${(p.routines||[]).map((r,ri) => `
+          <div style="display:flex;align-items:center;gap:10px;background:var(--s3);border:1px solid var(--bd);border-radius:8px;padding:9px 12px">
+            <input type="checkbox" ${r.done?'checked':''} onchange="toggleRoutine(${i},${ri},this.checked)"
+              style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" />
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;color:${r.done?'var(--t3)':'var(--t1)'};${r.done?'text-decoration:line-through':''}">
+                ${r.task}
+              </div>
+              <div style="font-size:10px;color:var(--t3);margin-top:2px">
+                🔔 แจ้งเตือนทุกวันที่ <strong style="color:var(--accent)">${r.day}</strong> ของเดือน
+              </div>
+            </div>
+            <button onclick="removeRoutine(${i},${ri})"
+              style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:2px 5px;flex-shrink:0"
+              onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--t3)'">✕</button>
+          </div>
+        `).join('')}
+        ${!(p.routines||[]).length ? '<div style="font-size:12px;color:var(--t3);text-align:center;padding:12px">ยังไม่มี Routine — เพิ่มด้านล่าง</div>' : ''}
+      </div>
+
+      <!-- Add routine form -->
+      <div style="display:flex;gap:8px;align-items:end">
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--t3);margin-bottom:4px">รายละเอียด Routine</div>
+          <input type="text" id="routine-task-${i}" class="fc" placeholder="เช่น ส่ง Report ลูกค้า" style="font-size:12px;padding:7px 10px" />
+        </div>
+        <div style="width:100px">
+          <div style="font-size:10px;color:var(--t3);margin-bottom:4px">วันที่แจ้งเตือน</div>
+          <select id="routine-day-${i}" class="fc" style="font-size:12px;padding:7px 10px">
+            ${Array.from({length:28},(_,d)=>`<option value="${d+1}">วันที่ ${d+1}</option>`).join('')}
+          </select>
+        </div>
+        <button onclick="addRoutine(${i})"
+          style="background:rgba(30,181,168,.15);color:var(--accent);border:1px solid rgba(30,181,168,.4);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);white-space:nowrap;height:36px">
+          ＋ เพิ่ม
+        </button>
+      </div>
+
+      <!-- Routine alert: today's routines -->
+      ${(function(){
+        var today = new Date().getDate();
+        var due = (p.routines||[]).filter(function(r){ return r.day === today && !r.done; });
+        if (!due.length) return '';
+        return '<div style="margin-top:10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 12px">' +
+          '<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">⏰ วันนี้ต้องทำ!</div>' +
+          due.map(function(r){ return '<div style="font-size:12px;color:var(--t1)">• ' + r.task + '</div>'; }).join('') +
+          '</div>';
+      })()}
+    </div>
+
     <!-- Status History -->
     <div>
       <div style="font-size:12px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">
@@ -483,6 +545,41 @@ function openProject(i) {
     </div>
   `;
   document.getElementById('overlay-project').classList.add('show');
+}
+
+// ── ROUTINE FUNCTIONS ────────────────────────────────────────
+function addRoutine(projIdx) {
+  var p = PROJECTS[projIdx];
+  var taskEl = document.getElementById('routine-task-' + projIdx);
+  var dayEl  = document.getElementById('routine-day-' + projIdx);
+  var task = taskEl ? taskEl.value.trim() : '';
+  var day  = dayEl ? parseInt(dayEl.value) : 1;
+  if (!task) { showToast('⚠ กรุณาระบุรายละเอียด Routine'); return; }
+  if (!p.routines) p.routines = [];
+  p.routines.push({ id: 'r' + Date.now(), task: task, day: day, done: false });
+  showToast('✅ เพิ่ม Routine แล้ว');
+  openProject(projIdx);
+}
+
+function removeRoutine(projIdx, routineIdx) {
+  var p = PROJECTS[projIdx];
+  if (!p.routines) return;
+  var name = p.routines[routineIdx].task;
+  p.routines.splice(routineIdx, 1);
+  showToast('🗑 ลบ "' + name + '" แล้ว');
+  openProject(projIdx);
+}
+
+function toggleRoutine(projIdx, routineIdx, checked) {
+  var p = PROJECTS[projIdx];
+  if (p.routines && p.routines[routineIdx]) {
+    p.routines[routineIdx].done = checked;
+  }
+}
+
+function saveRoutines(projIdx) {
+  showToast('💾 บันทึก Routine แล้ว');
+  // Firestore override will handle actual save
 }
 
 function deleteProject(i) {
