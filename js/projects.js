@@ -244,57 +244,47 @@ function openProject(i) {
           💾 บันทึก
         </button>
       </div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:10px">เมื่อถึงกำหนด ระบบจะสร้าง Ticket ใน All Tickets อัตโนมัติ</div>
 
       <!-- Existing routines -->
       <div id="routine-list-${i}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
-        ${(p.routines||[]).map((r,ri) => `
-          <div style="display:flex;align-items:center;gap:10px;background:var(--s3);border:1px solid var(--bd);border-radius:8px;padding:9px 12px">
-            <input type="checkbox" ${r.done?'checked':''} onchange="toggleRoutine(${i},${ri},this.checked)"
-              style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" />
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:600;color:${r.done?'var(--t3)':'var(--t1)'};${r.done?'text-decoration:line-through':''}">
-                ${r.task}
-              </div>
-              <div style="font-size:10px;color:var(--t3);margin-top:2px">
-                🔔 แจ้งเตือนทุกวันที่ <strong style="color:var(--accent)">${r.day}</strong> ของเดือน
-              </div>
-            </div>
-            <button onclick="removeRoutine(${i},${ri})"
-              style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:2px 5px;flex-shrink:0"
-              onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--t3)'">✕</button>
-          </div>
-        `).join('')}
+        ${(p.routines||[]).map((r,ri) => {
+          var today = new Date(); today.setHours(0,0,0,0);
+          var next = r.nextDue ? new Date(r.nextDue) : null;
+          if (next) next.setHours(0,0,0,0);
+          var daysUntil = next ? Math.round((next - today) / 86400000) : null;
+          var statusColor = daysUntil === null ? 'var(--t3)' : daysUntil <= 0 ? 'var(--red)' : daysUntil <= 3 ? 'var(--gold)' : 'var(--green)';
+          var statusText = daysUntil === null ? 'ยังไม่กำหนด' : daysUntil < 0 ? 'เลยกำหนด '+Math.abs(daysUntil)+' วัน' : daysUntil === 0 ? 'วันนี้!' : 'อีก '+daysUntil+' วัน';
+          return '<div style="display:flex;align-items:center;gap:10px;background:var(--s3);border:1px solid var(--bd);border-radius:8px;padding:9px 12px">' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-size:13px;font-weight:600;color:var(--t1)">' + r.task + '</div>' +
+              '<div style="display:flex;gap:12px;margin-top:4px;flex-wrap:wrap">' +
+                '<span style="font-size:10px;color:var(--t3)">🔁 ทุก <strong style="color:var(--accent)">' + (r.intervalDays||30) + '</strong> วัน</span>' +
+                '<span style="font-size:10px;color:' + statusColor + ';font-weight:700">⏰ ' + statusText + '</span>' +
+                (r.nextDue ? '<span style="font-size:10px;color:var(--t3)">📅 ครั้งถัดไป: ' + fmtDate(r.nextDue) + '</span>' : '') +
+              '</div>' +
+            '</div>' +
+            '<button onclick="removeRoutine('+i+','+ri+')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:2px 5px;flex-shrink:0" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--t3)\'">✕</button>' +
+          '</div>';
+        }).join('')}
         ${!(p.routines||[]).length ? '<div style="font-size:12px;color:var(--t3);text-align:center;padding:12px">ยังไม่มี Routine — เพิ่มด้านล่าง</div>' : ''}
       </div>
 
       <!-- Add routine form -->
-      <div style="display:flex;gap:8px;align-items:end">
-        <div style="flex:1">
+      <div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
+        <div style="flex:1;min-width:150px">
           <div style="font-size:10px;color:var(--t3);margin-bottom:4px">รายละเอียด Routine</div>
           <input type="text" id="routine-task-${i}" class="fc" placeholder="เช่น ส่ง Report ลูกค้า" style="font-size:12px;padding:7px 10px" />
         </div>
-        <div style="width:100px">
-          <div style="font-size:10px;color:var(--t3);margin-bottom:4px">วันที่แจ้งเตือน</div>
-          <select id="routine-day-${i}" class="fc" style="font-size:12px;padding:7px 10px">
-            ${Array.from({length:28},(_,d)=>`<option value="${d+1}">วันที่ ${d+1}</option>`).join('')}
-          </select>
+        <div style="width:110px">
+          <div style="font-size:10px;color:var(--t3);margin-bottom:4px">ทุกกี่วัน</div>
+          <input type="number" id="routine-interval-${i}" class="fc" value="30" min="1" max="365" style="font-size:12px;padding:7px 10px;text-align:center" />
         </div>
         <button onclick="addRoutine(${i})"
           style="background:rgba(30,181,168,.15);color:var(--accent);border:1px solid rgba(30,181,168,.4);border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--sans);white-space:nowrap;height:36px">
           ＋ เพิ่ม
         </button>
       </div>
-
-      <!-- Routine alert: today's routines -->
-      ${(function(){
-        var today = new Date().getDate();
-        var due = (p.routines||[]).filter(function(r){ return r.day === today && !r.done; });
-        if (!due.length) return '';
-        return '<div style="margin-top:10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 12px">' +
-          '<div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">⏰ วันนี้ต้องทำ!</div>' +
-          due.map(function(r){ return '<div style="font-size:12px;color:var(--t1)">• ' + r.task + '</div>'; }).join('') +
-          '</div>';
-      })()}
     </div>
 
     <!-- Dates (editable) -->
@@ -551,13 +541,22 @@ function openProject(i) {
 function addRoutine(projIdx) {
   var p = PROJECTS[projIdx];
   var taskEl = document.getElementById('routine-task-' + projIdx);
-  var dayEl  = document.getElementById('routine-day-' + projIdx);
+  var intervalEl = document.getElementById('routine-interval-' + projIdx);
   var task = taskEl ? taskEl.value.trim() : '';
-  var day  = dayEl ? parseInt(dayEl.value) : 1;
+  var intervalDays = intervalEl ? parseInt(intervalEl.value) || 30 : 30;
   if (!task) { showToast('⚠ กรุณาระบุรายละเอียด Routine'); return; }
   if (!p.routines) p.routines = [];
-  p.routines.push({ id: 'r' + Date.now(), task: task, day: day, done: false });
-  showToast('✅ เพิ่ม Routine แล้ว');
+  var today = new Date().toISOString().split('T')[0];
+  var nextDate = new Date();
+  nextDate.setDate(nextDate.getDate() + intervalDays);
+  p.routines.push({
+    id: 'r' + Date.now(),
+    task: task,
+    intervalDays: intervalDays,
+    lastCreated: today,
+    nextDue: nextDate.toISOString().split('T')[0]
+  });
+  showToast('✅ เพิ่ม Routine แล้ว — จะสร้าง Ticket อัตโนมัติทุก ' + intervalDays + ' วัน');
   openProject(projIdx);
 }
 
@@ -579,7 +578,53 @@ function toggleRoutine(projIdx, routineIdx, checked) {
 
 function saveRoutines(projIdx) {
   showToast('💾 บันทึก Routine แล้ว');
-  // Firestore override will handle actual save
+}
+
+// ── AUTO-CREATE TICKETS FROM ROUTINES ────────────────────────
+function checkRoutinesAndCreateTickets() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var todayStr = today.toISOString().split('T')[0];
+  var created = 0;
+
+  PROJECTS.forEach(function(p, pi) {
+    if (p.status !== 'active') return;
+    if (!p.routines || !p.routines.length) return;
+
+    p.routines.forEach(function(r) {
+      if (!r.nextDue) return;
+      var due = new Date(r.nextDue); due.setHours(0,0,0,0);
+      if (due > today) return;
+
+      // Due or overdue → create ticket
+      var ticketId = genTicketId();
+      TICKETS.unshift({
+        id: ticketId,
+        client: p.name,
+        platform: (p.accesses && p.accesses.length > 0) ? p.accesses[0].platform : '(ไม่ระบุ)',
+        type: 'Routine: ' + r.task,
+        desc: '🔄 สร้างอัตโนมัติจาก Routine — ' + r.task + ' (ทุก ' + r.intervalDays + ' วัน)',
+        priority: 'm',
+        status: 'todo',
+        specialist: p.member || null,
+        coSpecialist: null,
+        deadline: todayStr,
+        created: todayStr,
+        statusLog: [{ date: todayStr, status: 'todo', note: '🔄 สร้างจาก Routine อัตโนมัติ' }]
+      });
+
+      // Update routine: set next due
+      r.lastCreated = todayStr;
+      var next = new Date(today);
+      next.setDate(next.getDate() + (r.intervalDays || 30));
+      r.nextDue = next.toISOString().split('T')[0];
+      created++;
+    });
+  });
+
+  if (created > 0) {
+    showToast('🔄 สร้าง ' + created + ' Ticket จาก Routine อัตโนมัติ');
+    render();
+  }
 }
 
 function deleteProject(i) {

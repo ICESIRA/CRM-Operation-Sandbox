@@ -388,6 +388,31 @@ window.toggleRoutine = async function(projIdx, routineIdx, checked) {
   await _saveProject(PROJECTS[projIdx]);
 };
 
+// ── OVERRIDE: checkRoutinesAndCreateTickets → Firestore ─────
+const _origCheckRoutines = window.checkRoutinesAndCreateTickets;
+window.checkRoutinesAndCreateTickets = async function() {
+  var beforeLen = TICKETS.length;
+  _origCheckRoutines();
+  var newCount = TICKETS.length - beforeLen;
+  // Save new auto-created tickets to Firestore
+  for (var ti = 0; ti < newCount; ti++) {
+    var t = TICKETS[ti];
+    try {
+      var ticketData = Object.assign({}, t);
+      delete ticketData._fbId;
+      var ref = await addDoc(collection(db, 'tickets'), ticketData);
+      t._fbId = ref.id;
+    } catch(e) { console.error('Auto-ticket save error:', e); }
+  }
+  // Save updated projects (nextDue changed)
+  for (var pi = 0; pi < PROJECTS.length; pi++) {
+    var p = PROJECTS[pi];
+    if (p.routines && p.routines.length) {
+      try { await _saveProject(p); } catch(e) { console.error('Routine save error:', e); }
+    }
+  }
+};
+
 // ── OVERRIDE: updateProjDate → Firestore ────────────────────
 const _origUpdateProjDate = window.updateProjDate;
 window.updateProjDate = async function(i, field, val) {

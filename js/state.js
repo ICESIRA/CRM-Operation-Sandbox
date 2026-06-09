@@ -63,12 +63,19 @@ function nav(el, page) {
   render();
 }
 
+var _routineChecked = false;
+
 function render() {
   var fn = { 'head-dashboard':renderDashboard, 'head-tickets':renderAllTickets, 'head-team':renderTeam, 'head-clients':renderClients, 'head-report':renderReport, 'head-settings':renderSettings }[currentPage];
   document.getElementById('content').innerHTML = fn ? fn() : '<div style="padding:40px;color:var(--t3);text-align:center">🚧 กำลังพัฒนา</div>';
   var ov = TICKETS.filter(function(t){ return t.status==='overdue'; }).length;
   var nb = document.getElementById('nb-overdue');
   if (nb) { nb.textContent = ov; nb.style.display = ov ? '' : 'none'; }
+  // Auto-create tickets from routines (once per page load, after data loads)
+  if (!_routineChecked && PROJECTS.length > 0 && typeof checkRoutinesAndCreateTickets === 'function') {
+    _routineChecked = true;
+    checkRoutinesAndCreateTickets();
+  }
 }
 
 var _localConfirmAddProject = null;
