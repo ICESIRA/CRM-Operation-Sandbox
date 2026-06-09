@@ -46,7 +46,7 @@ function renderClients() {
       ${!isSpecialist ? `
         <button style="${ownerTabStyle('all')}" onclick="setProjOwnerFilter('all')">👥 ทั้งหมด (${myProjects.length})</button>
         ${ownerOptions.map(t => {
-          const cnt = myProjects.filter(p=>p.member===t.name).length;
+          const cnt = myProjects.filter(p=>p.member===t.name && (p.status==='active' || p.status==='waiting')).length;
           return `<button style="${ownerTabStyle(t.name)}" onclick="setProjOwnerFilter('${t.name}')">${t.icon||'👤'} ${t.nickname||t.name} (${cnt})</button>`;
         }).join('')}
         <span style="width:1px;height:18px;background:var(--bd);margin:0 4px"></span>
